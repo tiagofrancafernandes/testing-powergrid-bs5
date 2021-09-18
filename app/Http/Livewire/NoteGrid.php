@@ -5,6 +5,7 @@ namespace App\Http\Livewire;
 use App\Models\Note;
 use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Builder;
+use PowerComponents\LivewirePowerGrid\Button;
 use PowerComponents\LivewirePowerGrid\Column;
 use PowerComponents\LivewirePowerGrid\PowerGrid;
 use PowerComponents\LivewirePowerGrid\PowerGridEloquent;
@@ -19,6 +20,8 @@ class NoteGrid extends PowerGridComponent
     {
         $this->showCheckBox()
             ->showPerPage()
+            ->showRecordCount('short')
+            ->showToggleColumns()
             ->showExportOption('download', ['excel', 'csv'])
             ->showSearchInput();
     }
@@ -38,10 +41,10 @@ class NoteGrid extends PowerGridComponent
         return PowerGrid::eloquent()
             ->addColumn('id')
             ->addColumn('title')
-            ->addColumn('created_at_formatted', function(Note $model) { 
+            ->addColumn('created_at_formatted', function(Note $model) {
                 return Carbon::parse($model->created_at)->format('d/m/Y H:i:s');
             })
-            ->addColumn('updated_at_formatted', function(Note $model) { 
+            ->addColumn('updated_at_formatted', function(Note $model) {
                 return Carbon::parse($model->updated_at)->format('d/m/Y H:i:s');
             });
     }
@@ -58,6 +61,7 @@ class NoteGrid extends PowerGridComponent
                 ->title(__('TITLE'))
                 ->field('title')
                 ->sortable()
+                ->editOnClick(true)
                 ->searchable()
                 ->makeInputText(),
 
@@ -73,6 +77,7 @@ class NoteGrid extends PowerGridComponent
                 ->field('updated_at_formatted')
                 ->searchable()
                 ->sortable()
+                ->visibleInExport(false)
                 ->makeInputDatePicker('updated_at'),
 
         ]
@@ -87,23 +92,25 @@ class NoteGrid extends PowerGridComponent
     |
     */
 
-    /*
     public function actions(): array
     {
-       return [
-           Button::add('edit')
-               ->caption(__('Edit'))
-               ->class('bg-indigo-500 text-white')
-               ->route('note.edit', ['note' => 'id']),
+        return [
+            Button::add('edit')
+                ->caption(__('Edit'))
+                ->class('btn btn-sm btn-outline-info')
+                ->route('note.index', ['note' => 'id']),
 
-           Button::add('destroy')
-               ->caption(__('Delete'))
-               ->class('bg-red-500 text-white')
-               ->route('note.destroy', ['note' => 'id'])
-               ->method('delete')
+            Button::add('destroy')
+                ->caption(__('Delete'))
+                ->class('btn btn-sm btn-danger')
+                ->route('note.index', ['note' => 'id'])
+                ->method('delete'),
+            Button::add('view')
+                ->caption(__('View'))
+                ->class('btn btn-primary')
+                ->emit('postAdded', ['cod' => 'id']),
         ];
     }
-    */
 
     /*
     |--------------------------------------------------------------------------
@@ -113,17 +120,16 @@ class NoteGrid extends PowerGridComponent
     |
     */
 
-    /*
     public function update(array $data ): bool
     {
-       try {
-           $updated = Note::query()->find($data['id'])->update([
+        try {
+            $updated = Note::query()->find($data['id'])->update([
                 $data['field'] => $data['value']
-           ]);
-       } catch (QueryException $exception) {
-           $updated = false;
-       }
-       return $updated;
+            ]);
+        } catch (QueryException $exception) {
+            $updated = false;
+        }
+        return $updated;
     }
 
     public function updateMessages(string $status, string $field = '_default_message'): string
@@ -141,5 +147,4 @@ class NoteGrid extends PowerGridComponent
 
         return ($updateMessages[$status][$field] ?? $updateMessages[$status]['_default_message']);
     }
-    */
 }
